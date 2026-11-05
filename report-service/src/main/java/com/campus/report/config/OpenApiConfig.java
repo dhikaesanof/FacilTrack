@@ -17,8 +17,10 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Report Service API")
-                        .description("Microservice for Campus Facility Complaint Reports and Lifecycle Tracking")
-                        .version("1.0.0")
+                        .description("V1 retains free-text categories and array lists. V2 adds database pagination "
+                                + "and official categories. Legacy aliases are mapped only on V2 reads; stored values remain unchanged. "
+                                + "See README for the explicit mapping and caller migration examples.")
+                        .version("2.0.0")
                         .contact(new Contact().name("Campus Engineering Team")))
                 .servers(List.of(
                         new Server().url("http://localhost:8081").description("Local Development Server")

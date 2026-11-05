@@ -127,6 +127,124 @@ FacilTrack/
 | `PATCH` | `/api/v1/reports/{id}/verify` | Admin verification: transitions to `VERIFIED` or `REJECTED` |
 | `PATCH` | `/api/v1/internal/reports/{id}/status` | Internal sync endpoint called by `assignment-service` |
 
+### Report API V2 (alongside V1)
+
+V1 remains available with free-text `category`, exact-string category filtering,
+and a JSON array for the report list. V2 uses the same report table and business
+service. Facility and Assignment endpoints, including internal status sync at
+`/api/v1/internal/reports/{id}/status`, remain V1.
+
+| Method | V2 endpoint | Behavior |
+|---|---|---|
+| GET | `/api/v2/reports` | Paginated list, optional `status` and official `category` filters |
+| GET | `/api/v2/reports/{id}` | Detail with mapped category |
+| POST | `/api/v2/reports` | Create; existing facility validation, initial status SUBMITTED |
+| PUT | `/api/v2/reports/{id}` | Update category, description, priority; only SUBMITTED |
+| PATCH | `/api/v2/reports/{id}` | Description and priority only; only SUBMITTED; category is not updated |
+| PATCH | `/api/v2/reports/{id}/verify` | SUBMITTED to VERIFIED or REJECTED |
+| DELETE | `/api/v2/reports/{id}` | Cancel SUBMITTED report; 204 without body |
+
+Pagination: `page` is zero-based (default 0, minimum 0); `size` defaults to 10
+and must be 1 through 100. Invalid or empty pagination parameters return 400.
+Filters execute in the database before counting/pagination. Ordering is always
+`createdAt DESC, id ASC`. `size` is the requested limit, including on the last
+page. Beyond the last page returns 200 with empty `items`, preserving totals.
+No matches returns `totalItems: 0, totalPages: 0`.
+
+```http
+GET /api/v2/reports?page=0&size=10&status=SUBMITTED&category=NETWORK
+```
+
+Example list envelope (empty database):
+
+```json
+{"items":[],"page":0,"size":10,"totalItems":0,"totalPages":0}
+```
+
+With 25 matches, the envelope has `totalItems: 25, totalPages: 3`; page 2
+contains five items but still reports `size: 10`. Each item and every V2
+single-report response retains `id`, `reporterId`, `facilityId`, `category`,
+`description`, `priority`, `status`, `createdAt`, and `updatedAt`.
+
+Official categories (POST, PUT, and list filter accept **only these exact uppercase codes**):
+
+| Code | Meaning |
+|---|---|
+| ELECTRICAL | Kelistrikan |
+| PLUMBING | Air dan sanitasi |
+| NETWORK | Jaringan |
+| HVAC | Pendingin udara dan ventilasi |
+| FURNITURE | Perabot |
+| EQUIPMENT | Peralatan pendukung kegiatan |
+| OTHER | Masalah lain |
+
+Legacy read mapping is a team-defined equivalence policy, not a claim about
+production data. Trim leading/trailing spaces and ignore case when reading:
+official codes map to themselves; the following exact aliases map as shown.
+There is no substring matching or inference from descriptions.
+
+| Stored V1 values | V2 category |
+|---|---|
+| WIFI, WI-FI, INTERNET | NETWORK |
+| LISTRIK, KELISTRIKAN | ELECTRICAL |
+| AC, AIR CONDITIONING | HVAC |
+| MEJA, KURSI | FURNITURE |
+| PROYEKTOR, PROJECTOR | EQUIPMENT |
+| Every unrecognized value | OTHER |
+
+All V2 report responses apply this mapping, including mutation responses.
+Reading never rewrites the stored category: V1 still returns the original text.
+V2 category filters apply exactly the same mapping in SQL, including case/space
+normalization and the OTHER fallback, so page totals match the filtered data.
+For example `category=NETWORK` finds `NETWORK`, ` wifi `, `Wi-Fi`, and `INTERNET`.
+`category=OTHER` finds explicit OTHER and all unrecognized strings.
+This does not permit aliases as V2 input: `WIFI`, `electrical`, ` NETWORK`,
+`NETWORK `, and an empty category return 400 on POST, PUT, and list filters.
+
+V2 errors retain the existing `timestamp`, `status`, `error`, `message`, `path`,
+and optional `details` structure: 400 for invalid input, 404 for missing reports,
+422 for existing lifecycle/facility rule violations, 503 for unavailable Facility
+Service, and 500 for unexpected errors. Example:
+
+```json
+{"timestamp":"2026-11-02T00:00:00Z","status":400,"error":"Bad Request","message":"page must be >= 0 and size must be between 1 and 100","path":"/api/v2/reports","details":null}
+```
+
+#### Caller migration and local examples
+
+These are two breaking contracts, so V1 is retained: the list now needs an
+envelope for bounded database reads, and categories need an explicit vocabulary
+for consistent filtering. Migrate list callers from iterating the response array
+to iterating `response.items`, fetching subsequent pages until `totalPages`.
+Replace free-text writes such as `WIFI` with the official code `NETWORK`.
+Do not merely change the URL prefix in an existing V1 client.
+
+Start services using the existing commands below. Create an ACTIVE facility at
+`POST http://localhost:8082/api/v1/facilities` using Swagger, then substitute its
+ID for `FACILITY_ID`:
+
+```bash
+# V1 still accepts free text
+curl -X POST http://localhost:8081/api/v1/reports \
+  -H 'Content-Type: application/json' \
+  -d '{"reporterId":"student-1","facilityId":"FACILITY_ID","category":"WIFI","description":"No connection","priority":"HIGH"}'
+
+# V2 requires an official category
+curl -X POST http://localhost:8081/api/v2/reports \
+  -H 'Content-Type: application/json' \
+  -d '{"reporterId":"student-1","facilityId":"FACILITY_ID","category":"NETWORK","description":"No connection","priority":"HIGH"}'
+
+curl http://localhost:8081/api/v1/reports
+curl 'http://localhost:8081/api/v2/reports?page=0&size=10&category=NETWORK'
+curl http://localhost:8081/api/v2/reports/REPORT_ID
+```
+
+OpenAPI for both versions is generated at `http://localhost:8081/v3/api-docs`
+and exposed by Swagger UI. Tests run with `mvn -B clean verify --file pom.xml`,
+the same command as CI. No additional database or test dependencies are needed.
+The current CI triggers only pushes to main/master/develop and PRs targeting
+main/master; pushing faciltrack-v2 alone does not trigger that workflow.
+
 ### 3. Assignment Service (`http://localhost:8083`)
 
 | HTTP Method | Endpoint | Description |

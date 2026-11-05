@@ -3,12 +3,13 @@ package com.campus.report.repository;
 import com.campus.report.entity.ComplaintReport;
 import com.campus.report.entity.ReportStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ReportRepository extends JpaRepository<ComplaintReport, String> {
+public interface ReportRepository extends JpaRepository<ComplaintReport, String>, JpaSpecificationExecutor<ComplaintReport> {
 
     List<ComplaintReport> findByStatus(ReportStatus status);
 

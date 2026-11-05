@@ -176,7 +176,7 @@ class ReportServiceTest {
                 .isInstanceOf(UnprocessableEntityException.class)
                 .hasMessageContaining("Only SUBMITTED reports can be cancelled");
 
-        verify(reportRepository, never()).delete(any());
+        verify(reportRepository, never()).delete(any(ComplaintReport.class));
     }
 
     @Test
