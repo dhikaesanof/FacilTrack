@@ -35,3 +35,13 @@ Thumbs.db
 
 ### Log files ###
 *.log
+
+### Local H2 storage ###
+/data/
+*.mv.db
+*.h2.db
+*.trace.db
+*.lock.db
+*.temp.db
+*.newFile
+*.oldFile
