@@ -102,6 +102,22 @@ class AssignmentControllerTest {
     }
 
     @Test
+    @Tag("GET")
+    @DisplayName("GET /api/v1/reports/{reportId}/maintenance-history - should return history")
+    void shouldReturnMaintenanceHistory() throws Exception {
+        AssignmentResponse response = new AssignmentResponse(
+                "asg-1", "rep-100", "tech-1", WorkStatus.RESOLVED,
+                "Done", "Fixed leak", Instant.now(), Instant.now()
+        );
+        when(assignmentService.getMaintenanceHistory("rep-100")).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/v1/reports/{reportId}/maintenance-history", "rep-100"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value("asg-1"))
+                .andExpect(jsonPath("$[0].reportId").value("rep-100"));
+    }
+
+    @Test
     @DisplayName("PATCH /api/v1/assignments/{id}/status - should update status to RESOLVED")
     void shouldUpdateStatusToResolved() throws Exception {
         UpdateAssignmentStatusRequest request = new UpdateAssignmentStatusRequest(
@@ -135,20 +151,5 @@ class AssignmentControllerTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.status").value(422))
                 .andExpect(jsonPath("$.message").value("Resolution note is strictly required when completing an assignment (status RESOLVED)"));
-    }
-
-    @Test
-    @DisplayName("GET /api/v1/reports/{reportId}/maintenance-history - should return history")
-    void shouldReturnMaintenanceHistory() throws Exception {
-        AssignmentResponse response = new AssignmentResponse(
-                "asg-1", "rep-100", "tech-1", WorkStatus.RESOLVED,
-                "Done", "Fixed leak", Instant.now(), Instant.now()
-        );
-        when(assignmentService.getMaintenanceHistory("rep-100")).thenReturn(List.of(response));
-
-        mockMvc.perform(get("/api/v1/reports/{reportId}/maintenance-history", "rep-100"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value("asg-1"))
-                .andExpect(jsonPath("$[0].reportId").value("rep-100"));
     }
 }
