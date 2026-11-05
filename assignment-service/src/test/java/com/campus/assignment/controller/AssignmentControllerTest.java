@@ -10,6 +10,7 @@ import com.campus.assignment.service.AssignmentService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -38,6 +39,7 @@ class AssignmentControllerTest {
     private AssignmentService assignmentService;
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/assignments - should return 201 when assignment created")
     void shouldCreateAssignment() throws Exception {
         CreateAssignmentRequest request = new CreateAssignmentRequest("rep-100", "tech-1", "Inspect valves");
@@ -57,6 +59,7 @@ class AssignmentControllerTest {
     }
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/assignments - should return 400 on missing required fields")
     void shouldReturn400OnInvalidBody() throws Exception {
         CreateAssignmentRequest badRequest = new CreateAssignmentRequest("", "", "");
@@ -70,6 +73,7 @@ class AssignmentControllerTest {
     }
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/assignments/{id} - should return 200 when found")
     void shouldReturnAssignmentById() throws Exception {
         AssignmentResponse response = new AssignmentResponse(
@@ -85,6 +89,7 @@ class AssignmentControllerTest {
     }
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/assignments/{id} - should return 404 when not found")
     void shouldReturn404WhenNotFound() throws Exception {
         when(assignmentService.getAssignmentById("unknown"))

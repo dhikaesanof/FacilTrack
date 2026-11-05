@@ -9,6 +9,7 @@ import com.campus.facility.service.FacilityService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -39,6 +40,7 @@ class FacilityControllerTest {
     private FacilityService facilityService;
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/facilities - should return 200 with list of facilities")
     void shouldReturnFacilitiesList() throws Exception {
         FacilityResponse response = new FacilityResponse(
@@ -56,6 +58,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/facilities/{id} - should return 200 when facility found")
     void shouldReturnFacilityById() throws Exception {
         FacilityResponse response = new FacilityResponse(
@@ -71,6 +74,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/facilities/{id} - should return 404 when facility not found")
     void shouldReturn404WhenNotFound() throws Exception {
         when(facilityService.getFacilityById("unknown-id"))
@@ -85,6 +89,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/facilities - should return 201 when valid")
     void shouldCreateFacility() throws Exception {
         FacilityRequest request = new FacilityRequest("Computer Lab", "LAB", "Tech Wing", "Room 205", OperationalStatus.ACTIVE);
@@ -103,6 +108,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/facilities - should return 400 when missing required fields")
     void shouldReturn400WhenInvalidPayload() throws Exception {
         FacilityRequest invalidRequest = new FacilityRequest("", "", "", "", null);

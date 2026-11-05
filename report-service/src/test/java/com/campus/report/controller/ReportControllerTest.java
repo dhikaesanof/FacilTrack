@@ -10,6 +10,7 @@ import com.campus.report.service.ReportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -41,6 +42,7 @@ class ReportControllerTest {
     private ReportService reportService;
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/reports - should return 201 on successful report creation")
     void shouldCreateReportSuccessfully() throws Exception {
         CreateReportRequest request = new CreateReportRequest("user-01", "fac-101", "PLUMBING", "Leakage in lab", Priority.HIGH);
@@ -60,6 +62,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/reports - should return 422 when facility is inactive or not found")
     void shouldReturn422WhenFacilityInactiveOrNotFound() throws Exception {
         CreateReportRequest request = new CreateReportRequest("user-01", "fac-inactive", "PLUMBING", "Leakage in lab", Priority.HIGH);
@@ -76,6 +79,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/reports - should return 503 when facility-service is unavailable")
     void shouldReturn503WhenFacilityServiceUnavailable() throws Exception {
         CreateReportRequest request = new CreateReportRequest("user-01", "fac-101", "PLUMBING", "Leakage in lab", Priority.HIGH);
@@ -92,6 +96,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("POST")
     @DisplayName("POST /api/v1/reports - should return 400 on blank required fields")
     void shouldReturn400OnInvalidBody() throws Exception {
         CreateReportRequest badRequest = new CreateReportRequest("", "", "", "", null);
@@ -105,6 +110,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/reports - should return list of reports")
     void shouldReturnReportsList() throws Exception {
         ReportResponse response = new ReportResponse(
@@ -119,6 +125,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("GET")
     @DisplayName("GET /api/v1/reports/{id} - should return 404 when report not found")
     void shouldReturn404WhenNotFound() throws Exception {
         when(reportService.getReportById("rep-nonexistent"))
