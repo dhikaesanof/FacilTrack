@@ -22,9 +22,11 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -138,6 +140,47 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("PUT")
+    @DisplayName("PUT /api/v1/reports/{id} - should return updated report details")
+    void shouldUpdateReport() throws Exception {
+        UpdateReportRequest request = new UpdateReportRequest("ELECTRICAL", "Flickering lights", Priority.HIGH);
+        ReportResponse response = new ReportResponse(
+                "rep-101", "user-01", "fac-101", "ELECTRICAL", "Flickering lights",
+                Priority.HIGH, ReportStatus.SUBMITTED, Instant.now(), Instant.now()
+        );
+        when(reportService.updateReport(eq("rep-101"), any(UpdateReportRequest.class))).thenReturn(response);
+
+        mockMvc.perform(put("/api/v1/reports/{id}", "rep-101")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.category").value("ELECTRICAL"))
+                .andExpect(jsonPath("$.description").value("Flickering lights"))
+                .andExpect(jsonPath("$.priority").value("HIGH"));
+    }
+
+    @Test
+    @Tag("PATCH")
+    @DisplayName("PATCH /api/v1/reports/{id} - should update only the description")
+    void shouldPatchReportDescription() throws Exception {
+        ReportResponse response = new ReportResponse(
+                "rep-101", "user-01", "fac-101", "PLUMBING", "Leakage near the sink",
+                Priority.HIGH, ReportStatus.SUBMITTED, Instant.now(), Instant.now()
+        );
+        when(reportService.patchReport(eq("rep-101"), any(PatchReportRequest.class))).thenReturn(response);
+
+        mockMvc.perform(patch("/api/v1/reports/{id}", "rep-101")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"description\":\"Leakage near the sink\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.description").value("Leakage near the sink"));
+
+        verify(reportService).patchReport(eq("rep-101"), argThat(request ->
+                "Leakage near the sink".equals(request.getDescription()) && request.getPriority() == null));
+    }
+
+    @Test
+    @Tag("DELETE")
     @DisplayName("DELETE /api/v1/reports/{id} - should return 204 on cancel when SUBMITTED")
     void shouldCancelSubmittedReport() throws Exception {
         doNothing().when(reportService).deleteReport("rep-101");
@@ -147,6 +190,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("DELETE")
     @DisplayName("DELETE /api/v1/reports/{id} - should return 422 if report is already VERIFIED/ASSIGNED")
     void shouldRejectCancelWhenBeyondSubmitted() throws Exception {
         doThrow(new UnprocessableEntityException("Report cannot be cancelled because current status is VERIFIED. Only SUBMITTED reports can be cancelled."))
@@ -159,6 +203,7 @@ class ReportControllerTest {
     }
 
     @Test
+    @Tag("PATCH")
     @DisplayName("PATCH /api/v1/reports/{id}/verify - should verify report")
     void shouldVerifyReport() throws Exception {
         VerifyReportRequest verifyRequest = new VerifyReportRequest(ReportStatus.VERIFIED, "Confirmed");

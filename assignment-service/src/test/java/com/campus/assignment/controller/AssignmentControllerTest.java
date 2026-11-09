@@ -118,6 +118,7 @@ class AssignmentControllerTest {
     }
 
     @Test
+    @Tag("PATCH")
     @DisplayName("PATCH /api/v1/assignments/{id}/status - should update status to RESOLVED")
     void shouldUpdateStatusToResolved() throws Exception {
         UpdateAssignmentStatusRequest request = new UpdateAssignmentStatusRequest(
@@ -139,6 +140,7 @@ class AssignmentControllerTest {
     }
 
     @Test
+    @Tag("PATCH")
     @DisplayName("PATCH /api/v1/assignments/{id}/status - should return 422 if RESOLVED has no resolutionNote")
     void shouldReturn422WhenMissingResolutionNote() throws Exception {
         UpdateAssignmentStatusRequest request = new UpdateAssignmentStatusRequest(WorkStatus.RESOLVED, "Done", null);

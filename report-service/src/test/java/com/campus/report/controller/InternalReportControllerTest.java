@@ -8,6 +8,7 @@ import com.campus.report.exception.UnprocessableEntityException;
 import com.campus.report.service.ReportService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -37,6 +38,7 @@ class InternalReportControllerTest {
     private ReportService reportService;
 
     @Test
+    @Tag("PATCH")
     @DisplayName("PATCH /api/v1/internal/reports/{id}/status - should update status to ASSIGNED")
     void shouldUpdateInternalStatus() throws Exception {
         UpdateReportStatusRequest request = new UpdateReportStatusRequest(ReportStatus.ASSIGNED);
@@ -56,6 +58,7 @@ class InternalReportControllerTest {
     }
 
     @Test
+    @Tag("PATCH")
     @DisplayName("PATCH /api/v1/internal/reports/{id}/status - should return 422 on illegal transition")
     void shouldReturn422OnIllegalTransition() throws Exception {
         UpdateReportStatusRequest request = new UpdateReportStatusRequest(ReportStatus.RESOLVED);

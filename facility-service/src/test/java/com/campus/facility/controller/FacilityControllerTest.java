@@ -123,6 +123,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("PUT")
     @DisplayName("PUT /api/v1/facilities/{id} - should return 200 on update")
     void shouldUpdateFacility() throws Exception {
         FacilityRequest request = new FacilityRequest("Updated Lab", "LAB", "Tech Wing", "Room 206", OperationalStatus.ACTIVE);
@@ -141,6 +142,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("PATCH")
     @DisplayName("PATCH /api/v1/facilities/{id} - should return 200 on partial patch")
     void shouldPatchFacility() throws Exception {
         FacilityPatchRequest patch = new FacilityPatchRequest(null, null, null, null, OperationalStatus.INACTIVE);
@@ -158,6 +160,7 @@ class FacilityControllerTest {
     }
 
     @Test
+    @Tag("DELETE")
     @DisplayName("DELETE /api/v1/facilities/{id} - should return 204 No Content")
     void shouldDeactivateFacility() throws Exception {
         doNothing().when(facilityService).deleteFacility("fac-100");
